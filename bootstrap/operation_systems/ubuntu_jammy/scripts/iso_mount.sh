@@ -1,5 +1,5 @@
 #!/bin/bash
-export $(cat ../.env | xargs)
+export $(grep -v '^#' ../.env | xargs)
 
 echo "----- Downloading image -----"
 wget $IMAGE_LINK
