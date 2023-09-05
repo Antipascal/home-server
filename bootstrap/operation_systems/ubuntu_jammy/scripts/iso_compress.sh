@@ -1,5 +1,5 @@
 #!/bin/bash
-export $(cat ../.env | xargs) && rails c
+export $(cat ../.env | xargs)
 
 xorriso -as mkisofs \
    -r -V 'Eiter jammy seeded' \

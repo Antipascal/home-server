@@ -1,5 +1,5 @@
 #!/bin/bash
-export $(cat ../.env | xargs) && rails c
+export $(cat ../.env | xargs)
 
 echo "----- Add grub menu entry -----"
 cat >> $BUILD_DIR/boot/grub/grub.cfg <<EOF

@@ -1,5 +1,5 @@
 #!/bin/bash
-export $(cat ../.env | xargs) && rails c
+export $(cat ../.env | xargs)
 
 echo "----- Downloading image -----"
 wget $IMAGE_LINK
