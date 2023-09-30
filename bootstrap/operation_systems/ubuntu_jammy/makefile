@@ -17,14 +17,23 @@ start:
 		wget \
 		genisoimage \
 		isolinux \
+		whois \
+		syslinux \
+		mtools \
+		p7zip-full \
+		p7zip-rar \
+		fakeroot \
+		binutils \
+		squashfs-tools \
 		xorriso
+	@mkdir -p /var/log/custom_build
 
 mount_iso:
 	@echo "Mounting iso"
-	@cd ./scripts && ./iso_mount.sh
+	@cd ./scripts && ./iso_mount.sh > /var/log/custom_build/build.log
 update_configs: mount_iso
 	@echo "Add custom configs to build"
-	@cd ./scripts && ./update_config.sh
+	@cd ./scripts && ./update_configs.sh >> /var/log/custom_build/build.log
 compress_iso: update_configs
 	@echo "Compress iso file"
-	@cd ./scripts && ./iso_compress.sh
+	@cd ./scripts && ./iso_compress.sh >> /var/log/custom_build/build.log

@@ -1,19 +1,18 @@
 #!/bin/bash
 export $(grep -v '^#' ../.env | xargs)
+source ../passwords/.env
 
-echo "----- Add grub menu entry -----"
-cat >> $BUILD_DIR/boot/grub/grub.cfg <<EOF
-menuentry "Install Eiter jammy" {
-    set gfxpayload=keep
-    linux   /casper/vmlinuz  file=/cdrom/preseed/$PRESEED_FILE auto=true priority=critical debian-installer/locale=en_US keyboard-configuration/layoutcode=us ubiquity/reboot=true languagechooser/language-name=English countrychooser/shortlist=US localechooser/supported-locales=en_US.UTF-8 boot=casper automatic-ubiquity initrd=/casper/initrd quiet splash noprompt noshell ---
-    initrd  /casper/initrd
-}
-EOF
+echo "----- Enable autoinstall  -----"
+sed -i -e 's/---/ autoinstall  ---/g' $BUILD_DIR/boot/grub/grub.cfg
+sed -i -e 's/---/ autoinstall  ---/g' $BUILD_DIR/boot/grub/loopback.cfg
+sed -i -e 's,---, ds=nocloud\\\\\\;s=/cdrom/nocloud/  ---,g'  $BUILD_DIR/boot/grub/grub.cfg
+sed -i -e 's,---, ds=nocloud\\\\\\;s=/cdrom/nocloud/  ---,g' $BUILD_DIR/boot/grub/loopback.cfg
 
 echo "----- Add preseed file -----"
-read -p "Enter root password: " ROOT_PASSWORD
-read -p "Enter password for user $(USER_NAME): " USER_PASSWORD
+mkdir --parents $BUILD_DIR/nocloud/
+cat ../data/user-data | envsubst > $BUILD_DIR/nocloud/user-data
+touch "$BUILD_DIR/nocloud/meta-data"
 
-ROOT_PASSWORD_HASH=$(echo -n $ROOT_PASSWORD | mkpasswd -m sha-512)
-USER_PASSWORD_HASH=$(echo -n $USER_PASSWORD | mkpasswd -m sha-512)
-cat ../data/custom.seed | envsubst > $BUILD_DIR/preseed/$PRESEED_FILE
+echo "----- Calculating MD5 sums -----"
+rm $BUILD_DIR/md5sum.txt
+(cd $BUILD_DIR/ && find . -type f -print0 | xargs -0 md5sum | grep -v "boot.cat" | grep -v "md5sum.txt" > md5sum.txt)

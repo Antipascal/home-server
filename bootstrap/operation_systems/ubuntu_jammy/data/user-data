@@ -1,0 +1,64 @@
+#cloud-config
+users:
+  - default
+  - name: ${USER_NAME}
+    gecos: ${USER_NAME}
+    passwd: "${USER_PASSWORD_HASH}"
+    shell: /bin/bash
+    lock-passwd: true
+    ssh_pwauth: false
+    chpasswd: { expire: False }
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    ssh_authorized_keys:
+     - ${USER_SSH_KEY}
+
+autoinstall:
+  version: 1
+  identity:
+    hostname: ${HOST_NAME}
+    password: "${ROOT_PASSWORD_HASH}"
+    username: ubuntu
+  keyboard:
+    layout: us
+  locale: en_US.UTF-8
+  apt:
+    disable_components: []
+    mirror-selection:
+        primary:
+            - country-mirror
+            - arches:
+                - amd64
+                - i386
+              uri: http://archive.ubuntu.com/ubuntu
+            - arches:
+                - amd64
+                - i386
+              uri: http://ports.ubuntu.com/ubuntu-ports
+  ssh:
+    install-server: true
+  network:
+    version: 2
+    ethernets:
+      enp2s0:
+        dhcp4: true
+      enp2s0:
+        dhcp4: true
+  storage:
+    config:
+      - {name: ubuntu-vg, devices:[partition-2], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
+      - {name: ubuntu-lv, volgroup: lvm_volgroup-0, size: 14558429184B, wipe: superblock, preserve: false, path: /dev/ubuntu-vg/ubuntu-lv , type: lvm_partition, id: lvm_partition-0}
+      - {fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
+      - {path: /, device: format-2, type: mount, id: mount-1}
+      - {path: /boot, device: format-1, type: mount, id: mount-0}
+  updates: security
+  late-commands:
+    write_files:
+      - path: /etc/ssh/sshd_config
+        content: |
+          LogLevel INFO
+          AllowUsers ${USER_NAME}
+        append: true
+    timezone: Europe/Moscow
+    runcmd:
+        - [shutdown, -h, now]
